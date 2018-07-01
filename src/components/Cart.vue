@@ -27,7 +27,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr :key="item.id" v-for="item in cart">
                 <th scope="row">1</th>
                 <td>Mark</td>
                 <td>
@@ -35,34 +35,6 @@
                 </td>
                 <td>Otto</td>
                 <td>@mdo</td>
-                <td>
-                  <button type="button" class="close cart-item-delete" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">2</th>
-                <td>Jacob</td>
-                <td>
-                  <input type="number" class="form-control" style="width:60px;" min="0" max="9">
-                </td>
-                <td>Thornton</td>
-                <td>@fat</td>
-                <td>
-                  <button type="button" class="close cart-item-delete" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">3</th>
-                <td>Larry</td>
-                <td>
-                  <input type="number" class="form-control" style="width:60px;" min="0" max="9">
-                </td>
-                <td>the Bird</td>
-                <td>@twitter</td>
                 <td>
                   <button type="button" class="close cart-item-delete" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -85,11 +57,11 @@
 export default {
   name: 'Cart',
   props: {
-    price: { type: Number },
+    cart: { type: Array },
   },
   data() {
     return {
-      characters: {},
+      price: 0,
     };
   },
 };

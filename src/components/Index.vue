@@ -1,12 +1,12 @@
 <template>
   <div>
     <Header></Header>
-    <Cart v-bind:price="price"></Cart>
+    <Cart v-bind:cart="cart"></Cart>
     <div class="container-fluid" style="background-color: #edecee;">
       <div class="row justify-content-center">
         <div
         class="col-5 col-md-3 col-lg-2 character-box"
-        :key="character.id" v-for="character in characters">
+        :key="character.id" v-for="(character, index) in characters">
           <div style="text-align:center">
             <div class="character-thumbnail">
               <img :src="
@@ -16,11 +16,11 @@
               >
             </div>
             <div class="character-name">
-              <a style="display:block" href="#">{{ character.id}} - {{ character.name }}</a>
+              <a style="display:block" href="#">{{ character.name }}</a>
               <span>{{ formatMoney(character.price) }}</span>
             </div>
             <div>
-              <a class="btn btn-outline-secondary" @click="alert(character.id)">Adicionar</a>
+              <a class="btn btn-outline-secondary" @click="addToCart(index)">Adicionar</a>
             </div>
           </div>
         </div>
@@ -44,7 +44,8 @@ export default {
     return {
       characters: {},
       price: 0,
-      cart: {},
+      cart: [],
+      addItem: true,
     };
   },
   created() {
@@ -55,11 +56,22 @@ export default {
       axios.get('http://localhost:8000/api/marvel')
         .then((response) => {
           this.characters = response.data.results;
-          console.log(this.characters);
         });
     },
-    addToCart(characterId) {
-      console.log(characters);
+    addToCart(characterIndex) {
+      this.addItem = true;
+
+      this.cart.forEach((x) => {
+        if (x.id === this.characters[characterIndex].id) {
+          this.characters[characterIndex].quantity += 1;
+          this.addItem = false;
+        }
+      });
+
+      if (this.addItem) {
+        this.characters[characterIndex].quantity = 1;
+        this.cart.push(this.characters[characterIndex]);
+      }
     },
     formatMoney(price) {
       return price.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+,)/g, '$1.');
