@@ -7,7 +7,7 @@
           <h5 class="modal-title" id="cartModalLabel">Meu carrinho</h5>
           <div class="cart-subtotal-box">
             <div class="cart-subtotal-price">
-              Total: R$ {{ price }}
+              Total: R$ {{ formatMoney(computedCalc) }}
             </div>
           </div>
           <button type="button" class="close cart-close" data-dismiss="modal" aria-label="Close">
@@ -15,7 +15,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <table class="table">
+          <table class="table" v-if="cart.length > 0">
             <thead>
               <tr>
                 <th scope="col">Foto</th>
@@ -28,21 +28,36 @@
             </thead>
             <tbody>
               <tr :key="item.id" v-for="item in cart">
-                <th scope="row">1</th>
-                <td>Mark</td>
+                <th scope="row">
+                  <img :src="
+                  item.thumbnail.path +
+                  '/portrait_small.' +
+                  item.thumbnail.extension"
+                  >
+                </th>
+                <td>{{ item.name }}</td>
                 <td>
-                  <input type="number" class="form-control" style="width:60px;" min="0" max="9">
+                  <img src="../assets/less.png" style="cursor:pointer;"
+                  @click="decreaseItem(item.id)">
+                  {{ item.quantity }}
+                  <img src="../assets/more.png" style="cursor:pointer;"
+                  @click="addToCart(item.id)">
                 </td>
-                <td>Otto</td>
-                <td>@mdo</td>
+                <td>{{ formatMoney(item.price) }}</td>
+                <td>{{ formatMoney(item.quantity * item.price) }}</td>
                 <td>
-                  <button type="button" class="close cart-item-delete" aria-label="Close">
+                  <a href="#" class="close cart-item-delete"
+                  aria-label="Close" @click="removeItem(item.id)">
                     <span aria-hidden="true">&times;</span>
-                  </button>
+                  </a>
                 </td>
               </tr>
             </tbody>
           </table>
+          <div v-else style="text-align:center">
+            <img src="../assets/deadpool-triste.png">
+            <span style="font-weight: bold;">Carrinho vazio</span>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -58,11 +73,34 @@ export default {
   name: 'Cart',
   props: {
     cart: { type: Array },
+    formatMoney: { type: Function },
+    addToCart: { type: Function },
+    decreaseItem: { type: Function },
+    removeItem: { type: Function },
+    quantityCart: { type: Number },
+    characters: { type: Object },
   },
   data() {
     return {
       price: 0,
     };
+  },
+  computed: {
+    computedCalc() {
+      this.calc();
+      return this.price;
+    },
+  },
+  methods: {
+    aqui() {
+      console.log(this.cart);
+    },
+    calc() {
+      this.price = 0;
+      this.cart.forEach((element) => {
+        this.price += element.price * element.quantity;
+      });
+    },
   },
 };
 </script>
