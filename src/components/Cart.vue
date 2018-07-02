@@ -81,6 +81,7 @@
                 <div ref="card"></div>
               </div>
             </fieldset>
+            <a target="_blank" href="https://stripe.com/docs/testing#cards">Cartões do Stripe para teste</a>
             <div style="width:100%;text-align:right;margin-right:13px">
               <button class="btn btn-success" v-on:click="getToken(sendToken);" id="btn-confirmar" style="float:right">Confirmar</button>
               <div style="margin-top: 5px;float: right;margin-right: 15px;" v-show="showWaitMessage">
@@ -188,6 +189,8 @@ export default {
         const self = this;
         stripe.createToken(card, { name: self.cardUserName }).then((result) => {
           if (result.error) {
+
+          console.log(result.error);
             self.typeMessage = 'danger';
             self.paymentMessage = self.translateError(result.error.code);
             self.showPaymentMessage = true;
@@ -241,6 +244,10 @@ export default {
           return 'Ano de experição passado, verifique se o cartão está vencido';
         case 'incomplete_cvc':
           return 'Codigo de seguranção incompleto';
+        case 'incomplete_zip':
+          return 'CEP incompleto';
+        case 'invalid_zip':
+          return 'CEP inválido';
       }
     },
   },
