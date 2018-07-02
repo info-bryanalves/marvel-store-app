@@ -10,7 +10,8 @@
               Total: R$ {{ formatMoney(computedCalc) }}
             </div>
           </div>
-          <button type="button" class="close cart-close" data-dismiss="modal" @click="boxPaymentCard=false" aria-label="Close">
+          <button type="button" class="close cart-close" data-dismiss="modal"
+          @click="boxPaymentCard=false" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -60,9 +61,19 @@
           </div>
           <div v-show="boxPaymentCard">
             <hr>
+            <div :class="'alert alert-'+typeMessage" role="alert" v-if="showPaymentMessage">
+                {{ paymentMessage }}
+            </div>
             <fieldset>
               <div class="row">
-                <input type="text" class="StripeElement" placeholder="Nome" style="border:0">
+                <input type="text" class="StripeElement"
+                placeholder="Nome" style="border:0" v-model="cardUserName">
+              </div>
+            </fieldset>
+            <fieldset>
+              <div class="row">
+                <input type="email" class="StripeElement"
+                placeholder="Email" style="border:0" v-model="cardUserEmail">
               </div>
             </fieldset>
             <fieldset>
@@ -71,13 +82,17 @@
               </div>
             </fieldset>
             <div style="width:100%;text-align:right;margin-right:13px">
-              <button class="btn btn-success" v-on:click="purchase">Confirmar</button>
+              <button class="btn btn-success" v-on:click="getToken(sendToken);" id="btn-confirmar" style="float:right">Confirmar</button>
+              <div style="margin-top: 5px;float: right;margin-right: 15px;" v-show="showWaitMessage">
+                <span class="wait-message">Aguarde...</span><div class="spinner"></div>
+              </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-light" @click="boxPaymentCard=false" data-dismiss="modal">Fechar</button>
-          <button class="btn btn-dark" @click="boxPaymentCard=true">Finalizar compra</button>
+          <button class="btn btn-light" @click="boxPaymentCard=false"
+          data-dismiss="modal">Fechar</button>
+          <button class="btn btn-dark" @click="showBoxPaymentCard">Finalizar compra</button>
         </div>
       </div>
     </div>
@@ -85,6 +100,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 const stripe = Stripe('pk_test_91y7NO3Bssfty3BpUlzGGc5I');
 const elements = stripe.elements();
 let card = '';
@@ -103,7 +120,14 @@ export default {
   data() {
     return {
       boxPaymentCard: false,
+      cardUserName: '',
+      cardUserEmail: '',
+      token: {},
       price: 0,
+      typeMessage: 'success',
+      paymentMessage: [],
+      showPaymentMessage: false,
+      showWaitMessage: false,
     };
   },
   computed: {
@@ -140,12 +164,84 @@ export default {
         this.price += element.price * element.quantity;
       });
     },
-    purchase() {
-      const self = this;
-      stripe.createToken(card, { name: self.name }).then((result) => {
+    validateFields() {
+      if (this.cardUserName.trim() === '') {
+        this.typeMessage = 'danger';
+        this.showPaymentMessage = true;
+        this.paymentMessage = 'Informe seu nome';
 
-        console.log(result);
-      });
+        return false;
+      } else if (this.cardUserEmail.trim() === '') {
+        this.typeMessage = 'danger';
+        this.showPaymentMessage = true;
+        this.paymentMessage = 'Informe seu email';
+
+        return false;
+      }
+
+      return true;
+    },
+    getToken(callback) {
+      if (this.validateFields()) {
+        this.showWaitMessage = true;
+        document.getElementById('btn-confirmar').disabled = true;
+        const self = this;
+        stripe.createToken(card, { name: self.cardUserName }).then((result) => {
+          if (result.error) {
+            self.typeMessage = 'danger';
+            self.paymentMessage = self.translateError(result.error.code);
+            self.showPaymentMessage = true;
+            self.showWaitMessage = false;
+            document.getElementById('btn-confirmar').disabled = false;
+          } else {
+            self.showPaymentMessage = false;
+
+            callback.call(self, result.token);
+          }
+        });
+      }
+    },
+    sendToken(token) {
+      axios.post('http://localhost:8000/api/payment/register', {
+        amount: this.price,
+        receipt_email: this.cardUserEmail,
+        token: token.id,
+      })
+        .then((response) => {
+          this.showWaitMessage = false;
+          document.getElementById('btn-confirmar').disabled = false;
+          this.showPaymentMessage = true;
+          this.typeMessage = 'success'
+          this.paymentMessage = 'Pagamento realizado com sucesso!';
+        })
+        .catch((error) => {
+          this.showWaitMessage = false;
+          document.getElementById('btn-confirmar').disabled = false;
+          this.showPaymentMessage = true;
+          this.typeMessage = 'danger';
+          this.paymentMessage = 'Erro interno do servidor';
+        });
+    },
+    showBoxPaymentCard() {
+      if (this.quantityCart > 0) {
+        this.boxPaymentCard = true;
+      }
+    },
+    translateError(message) {
+      switch(message) {
+        case 'incomplete_number':
+          return 'Número de cartão incompleto';
+        case 'invalid_number':
+          return 'Número de cartão inválido';
+        case 'incomplete_expiry':
+          return 'Data de expiração incompleta';
+        case 'invalid_expiry_year':
+          return 'Ano de expiração inválido';
+        case 'invalid_expiry_year_past':
+          return 'Ano de experição passado, verifique se o cartão está vencido';
+        case 'incomplete_cvc':
+          return 'Codigo de seguranção incompleto';
+      }
     },
   },
 };
@@ -203,5 +299,24 @@ fieldset {
 
 .modal-body {
   padding: 0 1rem 1rem 1rem;
+}
+
+.wait-message {
+  float:left;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg);}
+}
+.spinner {
+  float:left;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #22a6b3;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  -webkit-animation: spin-data-v-331f341c 1.2s linear infinite;
+  animation: spin-data-v-331f341c 1.2s linear infinite;
+  float:right;
 }
 </style>

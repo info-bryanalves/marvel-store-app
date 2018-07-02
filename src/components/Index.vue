@@ -16,7 +16,7 @@
         :key="character.id" v-for="character in characters">
           <div :id="'cart-message-' + character.id" class="alert alert-success cart-message"
           style="display:none" role="alert">
-            Adicionado ao carrinho com sucesso!
+            Adicionado com sucesso!
           </div>
           <div style="text-align:center">
             <div class="character-thumbnail">
@@ -69,7 +69,7 @@ export default {
   },
   methods: {
     listCharacters() {
-      axios.get('http://localhost:8000/api/marvel')
+      axios.get('http://localhost:8000/api/marvel/characters')
         .then((response) => {
           this.showWaitMessage = false;
           this.characters = response.data;
