@@ -60,6 +60,8 @@ export default {
       addItem: true,
       showWaitMessage: true,
       quantityCart: 0,
+      name: 'Bryan Alves t',
+      result2: {},
     };
   },
   created() {

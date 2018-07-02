@@ -10,7 +10,7 @@
               Total: R$ {{ formatMoney(computedCalc) }}
             </div>
           </div>
-          <button type="button" class="close cart-close" data-dismiss="modal" aria-label="Close">
+          <button type="button" class="close cart-close" data-dismiss="modal" @click="boxPaymentCard=false" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -58,8 +58,26 @@
             <img src="../assets/deadpool-triste.png">
             <span style="font-weight: bold;">Carrinho vazio</span>
           </div>
+          <div v-show="boxPaymentCard">
+            <hr>
+            <fieldset>
+              <div class="row">
+                <input type="text" class="StripeElement" placeholder="Nome" style="border:0">
+              </div>
+            </fieldset>
+            <fieldset>
+              <div class="row">
+                <div ref="card"></div>
+              </div>
+            </fieldset>
+            <div style="width:100%;text-align:right;margin-right:13px">
+              <button class="btn btn-success" v-on:click="purchase">Confirmar</button>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
+          <button class="btn btn-light" @click="boxPaymentCard=false" data-dismiss="modal">Fechar</button>
+          <button class="btn btn-dark" @click="boxPaymentCard=true">Finalizar compra</button>
         </div>
       </div>
     </div>
@@ -67,6 +85,10 @@
 </template>
 
 <script>
+const stripe = Stripe('pk_test_91y7NO3Bssfty3BpUlzGGc5I');
+const elements = stripe.elements();
+let card = '';
+
 export default {
   name: 'Cart',
   props: {
@@ -80,6 +102,7 @@ export default {
   },
   data() {
     return {
+      boxPaymentCard: false,
       price: 0,
     };
   },
@@ -89,11 +112,39 @@ export default {
       return this.price;
     },
   },
+  mounted() {
+    const style = {
+      iconStyle: 'solid',
+      style: {
+        base: {
+          iconColor: '#c4f0ff',
+          color: '#000',
+          fontWeight: 500,
+          fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
+          fontSize: '16px',
+        },
+        invalid: {
+          iconColor: '#FFC7EE',
+          color: '#FFC7EE',
+        },
+      },
+    };
+
+    card = elements.create('card', style);
+    card.mount(this.$refs.card);
+  },
   methods: {
     calc() {
       this.price = 0;
       this.cart.forEach((element) => {
         this.price += element.price * element.quantity;
+      });
+    },
+    purchase() {
+      const self = this;
+      stripe.createToken(card, { name: self.name }).then((result) => {
+
+        console.log(result);
       });
     },
   },
@@ -102,6 +153,25 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+fieldset {
+  margin: 0 15px 20px;
+  padding: 0;
+  border-style: none;
+  box-shadow: 0 6px 9px rgba(50, 50, 93, 0.06), 0 2px 5px rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+.row {
+  align-items: center;
+  margin-left: 15px;
+  display:block;
+}
+
+.StripeElement {
+  width: 100%;
+  padding: 11px 15px 11px 0;
+}
+
 .cart-header {
   background-color: #262626;
 }
