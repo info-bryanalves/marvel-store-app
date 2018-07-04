@@ -22,3 +22,6 @@ npm install
 # Rodar projeto
 npm run dev
 ```
+#### Observação
+Este projeto roda junta ao projeto: <a href="https://github.com/info-bryanalves/marvel-store-api">Marvel Store API</a>.
+Então será necessário baixar os dois projetos, para o funcionamento da aplicação.
