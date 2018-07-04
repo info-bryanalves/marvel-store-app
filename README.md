@@ -11,7 +11,14 @@ Personagens: https://developer.marvel.com/
 Sistema de pagamento: https://stripe.com/
 
 ##### Build Setup
-- git clone https://github.com/info-bryanalves/marvel-store-app.git
-- cd marvel-store-app
-- npm install
-- npm run dev
+``` bash
+# Baixar projeto
+git clone https://github.com/info-bryanalves/marvel-store-app.git
+
+# Instalar dependências
+cd marvel-store-app
+npm install
+
+# Rodar projeto
+npm run dev
+```
